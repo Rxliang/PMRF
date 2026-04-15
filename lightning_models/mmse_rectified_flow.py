@@ -9,6 +9,7 @@ from torch.nn.functional import sigmoid
 from torch.optim import AdamW
 from torch_ema import ExponentialMovingAverage as EMA
 from torchmetrics.image import FrechetInceptionDistance, InceptionScore
+from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchvision.transforms.functional import to_pil_image
 from torchvision.utils import save_image
 
@@ -232,8 +233,14 @@ class MMSERectifiedFlow(LightningModule,
                                                                            self.device)
         x = x.to(torch.float32)
         y = y.to(torch.float32)
-        self.log_dict({"val_metrics/mse": ((x - xhat) ** 2).mean()}, on_step=False, on_epoch=True, sync_dist=True,
-                      batch_size=x.shape[0])
+        # PSNR and SSIM (added for OpenUS)
+        psnr_val = PeakSignalNoiseRatio(data_range=1.0).to(x.device)(xhat, x)
+        ssim_val = StructuralSimilarityIndexMeasure(data_range=1.0).to(x.device)(xhat, x)
+        self.log_dict({
+            "val_metrics/mse": ((x - xhat) ** 2).mean(),
+            "val_metrics/psnr": psnr_val,
+            "val_metrics/ssim": ssim_val,
+        }, on_step=False, on_epoch=True, sync_dist=True, batch_size=x.shape[0])
 
         if 'flow' in self.hparams.stage:
             self.fid.update(x, real=True)

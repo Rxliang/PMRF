@@ -125,6 +125,8 @@ def create_degradation(degradation):
             return img_lq, img_gt.clip(0, 1)
 
         return deg
+    elif degradation == 'identity':
+        return lambda x: (x, None)
     else:
         raise NotImplementedError()
 
