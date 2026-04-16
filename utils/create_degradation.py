@@ -4,19 +4,27 @@ from functools import partial
 import cv2
 import numpy as np
 import torch
-from basicsr.data import degradations as degradations
-from basicsr.data.transforms import augment
-from basicsr.utils import img2tensor
 from torch.nn.functional import interpolate
 from torchvision.transforms import Compose
-from utils.basicsr_custom import (
-    random_mixed_kernels,
-    random_add_gaussian_noise,
-    random_add_jpg_compression,
-)
+
+
+def _lazy_import_basicsr():
+    """Lazy import basicsr to avoid crash when only using identity degradation."""
+    from basicsr.data import degradations as deg
+    from basicsr.data.transforms import augment
+    from basicsr.utils import img2tensor
+    from utils.basicsr_custom import (
+        random_mixed_kernels,
+        random_add_gaussian_noise,
+        random_add_jpg_compression,
+    )
+    return deg, augment, img2tensor, random_mixed_kernels, random_add_gaussian_noise, random_add_jpg_compression
 
 
 def create_degradation(degradation):
+    # Identity first — no basicsr dependency needed
+    if degradation == 'identity':
+        return lambda x: (x, None)
     if degradation == 'sr_bicubic_x8_gaussian_noise_005':
         return Compose([
             partial(down_scale, scale_factor=1.0 / 8.0, mode='bicubic'),
@@ -125,8 +133,6 @@ def create_degradation(degradation):
             return img_lq, img_gt.clip(0, 1)
 
         return deg
-    elif degradation == 'identity':
-        return lambda x: (x, None)
     else:
         raise NotImplementedError()
 
