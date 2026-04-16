@@ -31,7 +31,8 @@ def create_dataset(args):
                                     source_samples_root=args.source_samples_train_data_root)
     val_data = ImageFolderDataset(root=args.val_data_root,
                                   degradation=degradation,
-                                  transform=val_transform)
+                                  transform=val_transform,
+                                  source_samples_root=args.source_samples_val_data_root)
 
     return train_data, val_data
 
@@ -114,6 +115,9 @@ if __name__ == '__main__':
                              ' (useful for reflow).')
     parser.add_argument('--val_data_root', type=str, required=True,
                         help='Path to validation data.')
+    parser.add_argument('--source_samples_val_data_root', type=str, required=False, default=None,
+                        help='Path to source samples for validation data '
+                             '(needed when no mmse_model is provided).')
     parser.add_argument('--arch', type=str, required=True,
                         choices=['hdit_XL2',
                                  'hdit_ImageNet256Sp4',
