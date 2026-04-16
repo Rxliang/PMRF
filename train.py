@@ -104,7 +104,8 @@ if __name__ == '__main__':
                                  'gaussian_noise_035',
                                  'colorization_gaussian_noise_025',
                                  'random_inpainting_gaussian_noise_01',
-                                 'difface'],
+                                 'difface',
+                                 'identity'],
                         help='The degradation type.')
     parser.add_argument('--train_data_root', type=str, required=True,
                         help='Path to training data.')
