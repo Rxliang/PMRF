@@ -50,7 +50,9 @@ def main(args):
     for batch in tqdm(dl):
         y = batch['y'].cuda()
         dummy_x = batch['x'].cuda()
-        estimate = model.generate_reconstructions(dummy_x, y, None, args.num_flow_steps, torch.device("cpu"))[0]
+        # If no MMSE model, treat input y as the posterior mean (non_noisy_z0)
+        non_noisy_z0 = None if model.mmse_model is not None else y
+        estimate = model.generate_reconstructions(dummy_x, y, non_noisy_z0, args.num_flow_steps, torch.device("cpu"))[0]
         for i in tqdm(range(y.shape[0])):
             save_image(estimate[i], os.path.join(output_path, os.path.basename(batch['img_file_name'][i])))
         if model.mmse_model is not None:
